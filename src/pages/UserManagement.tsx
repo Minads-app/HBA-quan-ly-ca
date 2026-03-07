@@ -398,49 +398,49 @@ export default function UserManagement() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white border-b border-gray-200 relative z-20 shrink-0">
+      <header className="bg-gradient-to-r from-blue-800 to-blue-600 shadow-lg relative z-20 shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center gap-3 md:gap-4 lg:justify-between">
           <div className="flex items-center gap-3 flex-1 lg:flex-none">
             {companyInfo.logoBase64 ? (
-              <img src={companyInfo.logoBase64} alt="Logo" className="w-9 h-9 object-contain rounded-lg border border-gray-200 bg-white p-0.5 shrink-0" />
+              <img src={companyInfo.logoBase64} alt="Logo" className="w-9 h-9 object-contain rounded-lg border border-white/30 bg-white/10 p-0.5 shrink-0" />
             ) : (
-              <div className="bg-blue-600 p-2 rounded-lg shrink-0">
+              <div className="bg-white/20 p-2 rounded-lg shrink-0">
                 <Users className="text-white w-5 h-5" />
               </div>
             )}
-            <h1 className="text-xl font-bold text-gray-900 truncate">{companyInfo.companyName || 'Nhân sự'}</h1>
+            <h1 className="text-xl font-bold text-white truncate">{companyInfo.companyName || 'Nhân sự'}</h1>
           </div>
           
           {/* Nav Tabs - luôn hiển thị, cuộn ngang trên mobile */}
-          <div className="flex w-full md:w-auto overflow-x-auto custom-scrollbar pb-1 md:pb-0 gap-1 bg-gray-100 p-1 rounded-lg order-3 lg:order-2">
+          <div className="flex w-full md:w-auto overflow-x-auto custom-scrollbar pb-1 md:pb-0 gap-1 bg-white/10 p-1 rounded-lg order-3 lg:order-2">
             <button 
               onClick={() => navigate('/manager')}
-              className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-200 flex items-center gap-1 md:gap-2 shrink-0"
+              className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
             >
               <Calendar size={16}/> Lịch
             </button>
             <button 
               onClick={() => navigate('/manager/dashboard')}
-              className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-200 flex items-center gap-1 md:gap-2 shrink-0"
+              className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
             >
               <BarChart3 size={16}/> Thống kê
             </button>
-            <button className="px-3 md:px-4 py-2 text-sm font-medium rounded-md bg-white text-blue-700 shadow-sm flex items-center gap-1 md:gap-2 shrink-0">
+            <button className="px-3 md:px-4 py-2 text-sm font-medium rounded-md bg-white text-blue-800 shadow-sm flex items-center gap-1 md:gap-2 shrink-0">
               <Users size={16}/> Nhân sự
             </button>
             <button 
               onClick={() => navigate('/manager/settings')}
-              className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-200 flex items-center gap-1 md:gap-2 shrink-0"
+              className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
             >
               <Settings size={16}/> Cài đặt
             </button>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4 order-2 lg:order-3 ml-auto shrink-0">
-            <span className="text-sm font-medium text-gray-700 hidden sm:block whitespace-nowrap">{profile?.fullName || 'Admin'}</span>
+            <span className="text-sm font-medium text-white/90 hidden sm:block whitespace-nowrap">{profile?.fullName || 'Admin'}</span>
             <button 
               onClick={handleLogout} 
-              className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-medium transition-colors shrink-0"
+              className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white/90 rounded-md font-medium transition-colors shrink-0"
             >
               Thoát
             </button>
@@ -725,8 +725,8 @@ export default function UserManagement() {
       )}
 
       {/* Footer bản quyền */}
-      <footer className="bg-white border-t border-gray-200 py-2 text-center shrink-0">
-        <p className="text-[11px] text-gray-400">© {new Date().getFullYear()} <span className="font-semibold text-gray-500">MinAds Soft</span></p>
+      <footer className="bg-gradient-to-r from-blue-900 to-blue-800 py-2 text-center shrink-0">
+        <p className="text-[11px] text-white/50">© {new Date().getFullYear()} <span className="font-semibold text-white/70">MinAds Soft</span></p>
       </footer>
     </div>
   );
