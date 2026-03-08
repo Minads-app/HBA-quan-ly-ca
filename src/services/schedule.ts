@@ -75,10 +75,17 @@ export const generateWeeklySchedule = async (targetDate: Date = new Date()) => {
     rules = { ...rules, ...snap.data() };
   }
 
+  // Check if week already exists to prevent overwriting
+  const weekRef = doc(db, 'weekly_schedules', weekId);
+  const weekSnap = await getDoc(weekRef);
+  
+  if (weekSnap.exists()) {
+    throw new Error('Lịch tuần này đã tồn tại, không thể tạo đè. Vui lòng xóa lịch cũ trước nếu muốn tạo lại.');
+  }
+
   const batch = writeBatch(db);
   
   // Create Main week doc
-  const weekRef = doc(db, 'weekly_schedules', weekId);
   batch.set(weekRef, {
     startDate: formatVNDateString(startOfWeek),
     endDate: formatVNDateString(endOfWeek),

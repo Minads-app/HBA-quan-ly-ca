@@ -469,16 +469,16 @@ export default function ManagerDashboard() {
             </button>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col flex-1 min-h-0 md:overflow-visible overflow-hidden">
-            <div className="flex-1 overflow-auto md:overflow-visible custom-scrollbar relative max-h-[75vh] md:max-h-none">
-              <table className="w-full border-collapse">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 overflow-auto custom-scrollbar relative max-h-[75vh] md:max-h-[calc(100vh-200px)]">
+              <table className="w-full border-collapse md:table-fixed">
                 <thead className="sticky top-0 z-40 shadow-sm relative">
                   <tr className="bg-gray-100">
                     <th className="p-4 text-center text-sm font-bold text-gray-500 border-b border-gray-200 sticky left-0 top-0 bg-gray-100 z-50 w-28 lg:w-36 shadow-[2px_0_5px_rgba(0,0,0,0.02)] align-middle border-r">
                       Ca Làm Việc
                     </th>
                     {daysLabels.map((day) => (
-                      <th key={day.dateStr} className={`p-4 text-center border-b border-r border-gray-200 min-w-[160px] md:min-w-0 md:w-auto sticky top-0 bg-gray-50 z-30 align-middle ${day.isToday ? 'bg-blue-50/90' : ''}`}>
+                      <th key={day.dateStr} className={`p-4 text-center border-b border-r border-gray-200 min-w-[120px] md:min-w-0 md:w-[12%] sticky top-0 bg-gray-50 z-30 align-middle ${day.isToday ? 'bg-blue-50/90' : ''}`}>
                         <div className="flex flex-col items-center relative">
                           {day.isToday && <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full z-10">Hôm nay</span>}
                           <span className={`font-bold mt-1 ${day.isToday ? 'text-blue-800' : 'text-gray-700'}`}>{day.dayName}</span>

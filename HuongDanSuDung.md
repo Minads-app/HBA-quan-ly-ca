@@ -91,8 +91,13 @@ shift-app/
 **Chức năng:**
 
 - **Điều hướng tuần:** Dùng nút ◀ ▶ để chuyển giữa các tuần
-- **Khởi tạo lịch:** Nếu tuần chưa có lịch, bấm **"Khởi tạo Lịch Tuần"** để tự động sinh ca trống dựa trên Cài đặt
-- **Trám ca / Bổ sung:** Bấm nút **"+ Bổ sung"** trong ô trống để gán nhân viên vào ca
+- **Quy trình Khởi tạo Lịch tuần (Chỉ thao tác 1 lần/tuần):**
+  1. Vào tab **Quản lý lịch làm việc**.
+  2. Chọn tuần làm việc muốn khởi tạo.
+  3. Bấm nút **"Khởi tạo lịch tuần"**. Lịch trống sẽ được sinh ra dựa trên "Cấu hình Lịch / Chia Ca" trong Cài đặt.
+  > ⚠️ **Lưu ý:** Hệ thống đã chặn việc "Khởi tạo đè" để tránh mất dữ liệu. Nếu bạn bấm tạo nhầm hoặc muốn làm lại từ đầu, bắt buộc phải bấm "Xóa tuần này" trước rồi mới "Khởi tạo" lại được.
+  
+- **Phân công và Trám ca:** Bấm nút **"+ Bổ sung"** trong ô trống để gán nhân viên vào ca
 - **Xóa nhân viên khỏi ca:** Hover vào tên nhân viên → bấm nút ❌
 - **Chốt lịch:** Bấm 🔒 **"Đang Mở"** để chốt — sau khi chốt, mọi thao tác thay đổi bị khóa
 - **Mở khóa lịch:** Bấm 🔓 **"Đã Chốt"** để mở lại
