@@ -507,11 +507,11 @@ export default function StaffRegistration() {
               <table className="w-full border-collapse">
                 <thead className="sticky top-0 z-40 shadow-sm">
                   <tr className="bg-gray-100">
-                    <th className="p-3 text-left text-[11px] font-bold text-gray-500 uppercase border-b border-gray-200 sticky left-0 top-0 bg-gray-100 z-50 w-24 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">Ngày</th>
+                    <th className="p-3 text-left text-sm font-extrabold text-gray-700 uppercase border-b border-gray-200 sticky left-0 top-0 bg-gray-100 z-50 w-24 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">Ngày</th>
                     {(() => {
                       const shiftTypes = scheduleRules?.shiftConfig ? Object.values(scheduleRules.shiftConfig) as any[] : [];
                       return shiftTypes.sort((a,b) => (a.startTime || '').localeCompare(b.startTime || '')).map((conf) => (
-                        <th key={conf.name} className="p-3 text-center text-[11px] font-bold text-gray-400 uppercase border-b border-gray-100 min-w-[110px] sticky top-0 bg-gray-100 z-40">
+                        <th key={conf.name} className="p-3 text-center text-sm font-extrabold text-gray-700 uppercase border-b border-gray-100 min-w-[110px] sticky top-0 bg-gray-100 z-40">
                           <div>{conf.name}</div>
                           <div className="text-[9px] font-normal text-gray-400 lowercase">{conf.startTime}-{conf.endTime}</div>
                         </th>
