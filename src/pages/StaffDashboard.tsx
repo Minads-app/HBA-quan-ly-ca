@@ -324,12 +324,14 @@ export default function StaffDashboard() {
             >
               <Users size={16} /> Nhân sự
             </button>
-            <button
-              onClick={() => navigate('/manager/settings')}
-              className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
-            >
-              <Settings size={16} /> Cài đặt
-            </button>
+            {profile?.role === 'admin' && (
+              <button
+                onClick={() => navigate('/manager/settings')}
+                className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
+              >
+                <Settings size={16} /> Cài đặt
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4 order-2 lg:order-3 ml-auto shrink-0">
