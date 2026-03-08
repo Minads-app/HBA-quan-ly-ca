@@ -203,8 +203,8 @@ export default function ManagerDashboard() {
                 ? 'bg-amber-50 text-amber-700 border-amber-200' 
                 : 'bg-blue-50 text-blue-700 border-blue-100'
               }`}>
-              <span className="font-medium truncate flex-1">{member.name}</span>
-              {member.status === 'pending' && <span className="text-[9px] font-bold uppercase tracking-wider ml-1 text-amber-600">(Chờ Xác nhận)</span>}
+              <span className="font-medium whitespace-normal break-words flex-1 text-left leading-tight">{member.name}</span>
+              {member.status === 'pending' && <span className="text-[9px] font-bold uppercase tracking-wider ml-1 text-amber-600 shrink-0">(Chờ Xác nhận)</span>}
             </div>
             {!isWeekLocked && (
               <button 
@@ -583,9 +583,9 @@ export default function ManagerDashboard() {
                           {scheduleRules && Object.entries(scheduleRules.positionsConfig || {})
                               .sort((a,b) => ((a[1] as any).order || 0) - ((b[1] as any).order || 0))
                               .map(([posId, posInfo]: [string, any]) => (
-                              <div key={posId} className="flex border-t border-gray-100/50 pt-2 first:border-t-0 first:pt-0">
-                                <div className="w-20 text-[11px] font-semibold text-gray-500 pt-1 pr-2 uppercase truncate" title={posInfo.name}>{posInfo.name}</div>
-                                <div className="flex-1">
+                              <div key={posId} className="flex flex-col border-t border-gray-100/50 pt-2 pb-1 first:border-t-0 first:pt-0">
+                                <div className="text-[10px] font-bold text-gray-500 uppercase mb-1" title={posInfo.name}>{posInfo.name}</div>
+                                <div className="w-full">
                                 {renderStaffCell(shift.staff?.[posId] || [], shift.backups?.[posId] || [], shift.id, posId, shift.shiftName, day.dateStr, scheduleRules?.staffSlots?.[posId] || 1)}
                                 </div>
                               </div>
