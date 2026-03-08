@@ -247,15 +247,16 @@ export default function StaffRegistration() {
   const registeredCount = countMyShifts();
 
   const handleConfirmWeek = async () => {
-    setLoading(true);
+    setRegisteringTask('confirm_week');
     try {
       await confirmWeekApi(weekId);
+      setHasConfirmedWeek(true); // Cập nhật UI tức thì, không cần chờ onSnapshot
       showToast('Đã xác nhận & chốt sổ tuần thành công!');
       setShowConfirmModal(false);
     } catch (error: any) {
       showToast("Lỗi: " + error.message, 'error');
     } finally {
-      setLoading(false);
+      setRegisteringTask(null);
     }
   };
 
@@ -636,16 +637,16 @@ export default function StaffRegistration() {
               <button
                 onClick={() => setShowConfirmModal(false)}
                 className="flex-1 py-3 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold transition-colors"
-                disabled={loading}
+                disabled={registeringTask === 'confirm_week'}
               >
                 Đóng lại
               </button>
               <button
                 onClick={handleConfirmWeek}
                 className="flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold transition-colors shadow-lg"
-                disabled={loading}
+                disabled={registeringTask === 'confirm_week'}
               >
-                {loading ? 'Đang tải...' : 'Chốt Lịch'}
+                {registeringTask === 'confirm_week' ? 'Đang chốt...' : 'Chốt Lịch'}
               </button>
             </div>
           </div>
