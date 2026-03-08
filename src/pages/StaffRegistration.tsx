@@ -465,7 +465,9 @@ export default function StaffRegistration() {
         {profile?.positions && profile.positions.length > 1 && (
           <div className="px-4 pb-4">
             <div className="bg-blue-700/50 p-1.5 rounded-lg flex overflow-x-auto hide-scrollbar gap-1 custom-scrollbar">
-              {profile.positions.map(pos => {
+              {[...profile.positions]
+                .sort((a,b) => (scheduleRules?.positionsConfig?.[a]?.order || 0) - (scheduleRules?.positionsConfig?.[b]?.order || 0))
+                .map(pos => {
                 const getPosLabel = (p: string) => {
                   return scheduleRules?.positionsConfig?.[p]?.name || p;
                 };

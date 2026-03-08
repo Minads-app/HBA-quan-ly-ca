@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Settings as SettingsIcon, Calendar, Users, Save, Plus, Trash2, AlertCircle, CheckCircle, XCircle, BarChart3, Upload, Building2, Phone, MapPin, Type, Image } from 'lucide-react';
+import { Settings as SettingsIcon, Calendar, Users, Save, Plus, Trash2, AlertCircle, CheckCircle, XCircle, BarChart3, Upload, Building2, Phone, MapPin, Type, Image, ChevronUp, ChevronDown, ShieldAlert } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useCompanyInfo } from '../hooks/useCompanyInfo';
+import { logAction } from '../services/auditLog';
 
 interface ShiftConfig {
   name: string;
@@ -22,6 +23,7 @@ interface SpecialDate {
 interface PositionConfig {
   name: string;
   color?: string; // Tương lai có thể map color riêng tư
+  order?: number; // Thứ tự hiển thị
 }
 
 interface ScheduleRules {
@@ -60,9 +62,9 @@ const DEFAULT_RULES: ScheduleRules = {
     sunday: ["ca1", "ca2", "ca3"]
   },
   positionsConfig: {
-    manager: { name: "Quản lý" },
-    cashier: { name: "Thu ngân" },
-    ticket_checker: { name: "Soát vé" }
+    manager: { name: "Quản lý", order: 0 },
+    cashier: { name: "Thu ngân", order: 1 },
+    ticket_checker: { name: "Soát vé", order: 2 }
   },
   deadline: {
     dayOfWeek: 'sunday',
@@ -210,6 +212,7 @@ export default function Settings() {
     setSaving(true);
     try {
       await setDoc(doc(db, 'settings', 'schedule_rules'), rules);
+      logAction('UPDATE_SHIFT_CONFIG', 'Cập nhật cấu hình và quy luật chia ca tuần', profile?.uid || 'system', profile?.fullName || 'Admin', 'schedule_rules');
       showToast('Đã lưu cấu hình Lịch thành công!');
     } catch (error) {
       console.error(error);
@@ -270,6 +273,11 @@ export default function Settings() {
 
   const handleRemoveShift = (key: string) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa Ca này? Lịch sử tuần cũ có thể bị ảnh hưởng nếu tuần đó chưa chốt.")) return;
+    
+    // Log the current shift name before removal
+    const shiftName = rules.shiftConfig[key]?.name || key;
+    logAction('DELETE_SHIFT_CONFIG', `Xóa khung giờ ca làm việc: ${shiftName}`, profile?.uid || 'system', profile?.fullName || 'Admin', key);
+
     setRules(prev => {
       const newConfig = { ...prev.shiftConfig };
       delete newConfig[key];
@@ -298,6 +306,9 @@ export default function Settings() {
       showToast("Vui lòng nhập Ngày và Lý do/Tên sự kiện", 'error');
       return;
     }
+    
+    logAction('ADD_SPECIAL_DATE', `Thêm ngày ngoại lệ: ${newSpecialDate.date} (${newSpecialDate.reason})`, profile?.uid || 'system', profile?.fullName || 'Admin', newSpecialDate.date);
+
     setRules(prev => ({
       ...prev,
       specialDates: [...prev.specialDates, newSpecialDate].sort((a, b) => a.date.localeCompare(b.date))
@@ -308,7 +319,8 @@ export default function Settings() {
   const handleRemoveSpecialDate = (index: number) => {
     setRules(prev => {
       const newDates = [...prev.specialDates];
-      newDates.splice(index, 1);
+      const removed = newDates.splice(index, 1)[0];
+      logAction('REMOVE_SPECIAL_DATE', `Xóa ngày ngoại lệ: ${removed.date} (${removed.reason})`, profile?.uid || 'system', profile?.fullName || 'Admin', removed.date);
       return { ...prev, specialDates: newDates };
     });
   };
@@ -341,17 +353,22 @@ export default function Settings() {
       return;
     }
 
-    setRules(prev => ({
-      ...prev,
-      positionsConfig: {
-        ...prev.positionsConfig,
-        [cleanId]: { name: newPosName.trim() }
-      },
-      staffSlots: {
-        ...prev.staffSlots,
-        [cleanId]: 1 // Default 1 slot cho vị trí mới
-      }
-    }));
+    setRules(prev => {
+      // Tìm số order lớn nhất hiện tại
+      const maxOrder = Math.max(-1, ...Object.values(prev.positionsConfig).map(p => p.order || 0));
+      
+      return {
+        ...prev,
+        positionsConfig: {
+          ...prev.positionsConfig,
+          [cleanId]: { name: newPosName.trim(), order: maxOrder + 1 }
+        },
+        staffSlots: {
+          ...prev.staffSlots,
+          [cleanId]: 1 // Default 1 slot cho vị trí mới
+        }
+      };
+    });
     setNewPosId('');
     setNewPosName('');
   };
@@ -373,6 +390,9 @@ export default function Settings() {
       if (!window.confirm(`Bạn có chắc muốn xóa vị trí "${rules.positionsConfig[id].name}"?`)) return;
     }
 
+    const positionName = rules.positionsConfig[id]?.name || id;
+    logAction('UPDATE_POSITION_CONFIG', `Xóa chức vụ/vị trí: ${positionName}`, profile?.uid || 'system', profile?.fullName || 'Admin', id);
+
     setRules(prev => {
       const newConfig = { ...prev.positionsConfig };
       delete newConfig[id];
@@ -384,6 +404,29 @@ export default function Settings() {
         positionsConfig: newConfig,
         staffSlots: newSlots
       };
+    });
+  };
+
+  const handleMovePosition = (id: string, direction: 'up' | 'down') => {
+    setRules(prev => {
+      const positionsObj = { ...prev.positionsConfig };
+      const posArray = Object.entries(positionsObj).sort((a,b) => (a[1].order || 0) - (b[1].order || 0));
+      const idx = posArray.findIndex(p => p[0] === id);
+      
+      if (idx < 0) return prev;
+      if (direction === 'up' && idx === 0) return prev;
+      if (direction === 'down' && idx === posArray.length - 1) return prev;
+      
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      
+      // Hoán đổi giá trị order của 2 vị trí
+      const currentOrder = posArray[idx][1].order || idx;
+      const targetOrder = posArray[targetIdx][1].order || targetIdx;
+      
+      positionsObj[id] = { ...positionsObj[id], order: targetOrder };
+      positionsObj[posArray[targetIdx][0]] = { ...positionsObj[posArray[targetIdx][0]], order: currentOrder };
+
+      return { ...prev, positionsConfig: positionsObj };
     });
   };
 
@@ -422,9 +465,22 @@ export default function Settings() {
             >
               <Users size={16}/> Nhân sự
             </button>
-            <button className="px-3 md:px-4 py-2 text-sm font-medium rounded-md bg-white text-blue-800 shadow-sm flex items-center gap-1 md:gap-2 shrink-0">
-              <SettingsIcon size={16}/> Cài đặt
-            </button>
+            {profile?.role === 'admin' && (
+              <>
+                <button 
+                  onClick={() => navigate('/manager/settings')}
+                  className="px-3 md:px-4 py-2 text-sm font-medium rounded-md bg-white text-blue-800 shadow-sm flex items-center gap-1 md:gap-2 shrink-0"
+                >
+                  <SettingsIcon size={16}/> Cài đặt
+                </button>
+                <button 
+                  onClick={() => navigate('/manager/audit-logs')}
+                  className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
+                >
+                  <ShieldAlert size={16}/> Nhật ký
+                </button>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4 order-2 lg:order-3 ml-auto shrink-0">
@@ -632,8 +688,28 @@ export default function Settings() {
                   <p className="text-sm text-gray-500">Quản lý các loại vị trí làm việc có trong hệ thống (Trực hồ, Pha chế, Thu ngân...)</p>
                 </div>
                 <div className="p-6 space-y-4">
-                  {Object.entries(rules.positionsConfig).map(([id, config]) => (
+                  {Object.entries(rules.positionsConfig)
+                    .sort((a,b) => (a[1].order || 0) - (b[1].order || 0))
+                    .map(([id, config], idx, arr) => (
                     <div key={id} className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                      <div className="flex flex-col gap-1 items-center justify-center mr-2 pt-5">
+                        <button 
+                          onClick={() => handleMovePosition(id, 'up')}
+                          disabled={idx === 0}
+                          className="p-1 rounded bg-white border border-gray-200 text-gray-400 hover:text-blue-600 hover:border-blue-300 disabled:opacity-30 transition-colors shadow-sm"
+                          title="Di chuyển Lên"
+                        >
+                          <ChevronUp size={16} />
+                        </button>
+                        <button 
+                          onClick={() => handleMovePosition(id, 'down')}
+                          disabled={idx === arr.length - 1}
+                          className="p-1 rounded bg-white border border-gray-200 text-gray-400 hover:text-blue-600 hover:border-blue-300 disabled:opacity-30 transition-colors shadow-sm"
+                          title="Di chuyển Xuống"
+                        >
+                          <ChevronDown size={16} />
+                        </button>
+                      </div>
                       <div className="w-1/3">
                         <label className="text-xs text-gray-500 font-medium block mb-1">Mã Vị Trí (ẩn)</label>
                         <input type="text" disabled value={id} className="w-full px-3 py-2 bg-gray-100/50 text-gray-500 text-sm border border-gray-200 rounded-md font-mono" />
@@ -647,7 +723,7 @@ export default function Settings() {
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-medium text-gray-900"
                         />
                       </div>
-                      <div className="pt-5">
+                      <div className="pt-5 pl-2 border-l border-gray-200">
                         <button
                           onClick={() => handleRemovePosition(id)}
                           className="text-red-500 hover:bg-red-50 p-2 rounded-md transition-colors"

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Users, UserPlus, Settings, Calendar, CheckCircle, XCircle, Edit3, Trash2, Phone, BarChart3 } from 'lucide-react';
+import { Users, UserPlus, Settings, Calendar, CheckCircle, XCircle, Edit3, Trash2, Phone, BarChart3, ShieldAlert } from 'lucide-react';
 import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { db, secondaryAuth } from '../firebase/config';
@@ -429,12 +429,20 @@ export default function UserManagement() {
               <Users size={16}/> Nhân sự
             </button>
             {profile?.role === 'admin' && (
-              <button 
-                onClick={() => navigate('/manager/settings')}
-                className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
-              >
-                <Settings size={16}/> Cài đặt
-              </button>
+              <>
+                <button 
+                  onClick={() => navigate('/manager/settings')}
+                  className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
+                >
+                  <Settings size={16}/> Cài đặt
+                </button>
+                <button 
+                  onClick={() => navigate('/manager/audit-logs')}
+                  className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
+                >
+                  <ShieldAlert size={16}/> Nhật ký
+                </button>
+              </>
             )}
           </div>
 

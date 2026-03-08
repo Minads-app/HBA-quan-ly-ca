@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Calendar, Users, Settings, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { BarChart3, Calendar, Users, Settings, ChevronLeft, ChevronRight, Filter, ShieldAlert } from 'lucide-react';
 import { collection, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { getStartOfWeek, generateWeekId } from '../services/schedule';
@@ -17,12 +17,8 @@ interface ShiftDoc {
   date: string;
   dateString: string;
   shiftName: string;
-  staff: {
-    manager: StaffEntry[];
-    cashier: StaffEntry[];
-    ticket_checker: StaffEntry[];
-  };
-  backups: StaffEntry[];
+  staff: Record<string, StaffEntry[]>;
+  backups: Record<string, StaffEntry[]>;
 }
 
 type ViewMode = 'week' | 'month';
@@ -189,7 +185,7 @@ export default function StaffDashboard() {
     });
 
     activeShifts.forEach(shift => {
-      const roles = ['manager', 'cashier', 'ticket_checker'] as const;
+      const roles = Object.keys(shift.staff || {});
       roles.forEach(role => {
         const staffArr = shift.staff?.[role] || [];
         staffArr.forEach((s: StaffEntry) => {
@@ -199,12 +195,14 @@ export default function StaffDashboard() {
           stats[s.userId].totalShifts++;
           stats[s.userId].shiftDetails.push({ date: shift.dateString, shiftName: shift.shiftName });
         });
-      });
-      (shift.backups || []).forEach((s: StaffEntry) => {
-        if (!stats[s.userId]) {
-          stats[s.userId] = { name: s.name, role: 'backup', totalShifts: 0, totalBackups: 0, shiftDetails: [] };
-        }
-        stats[s.userId].totalBackups++;
+
+        const backupArr = shift.backups?.[role] || [];
+        backupArr.forEach((s: StaffEntry) => {
+          if (!stats[s.userId]) {
+            stats[s.userId] = { name: s.name, role: 'backup', totalShifts: 0, totalBackups: 0, shiftDetails: [] };
+          }
+          stats[s.userId].totalBackups++;
+        });
       });
     });
 
@@ -231,6 +229,9 @@ export default function StaffDashboard() {
   };
 
   const getRoleLabel = (role: string) => {
+    if (scheduleRules?.positionsConfig && scheduleRules.positionsConfig[role]) {
+      return scheduleRules.positionsConfig[role].name;
+    }
     switch (role) {
       case 'manager': return 'Quản lý';
       case 'cashier': return 'Thu ngân';
@@ -278,7 +279,7 @@ export default function StaffDashboard() {
 
   const totalShiftsInPeriod = validTotalShifts.filter(shift => {
     let hasStaff = false;
-    const roles = ['manager', 'cashier', 'ticket_checker'] as const;
+    const roles = Object.keys(shift.staff || {});
     roles.forEach(role => {
       if (shift.staff && shift.staff[role] && shift.staff[role].length > 0) {
         hasStaff = true;
@@ -325,12 +326,20 @@ export default function StaffDashboard() {
               <Users size={16} /> Nhân sự
             </button>
             {profile?.role === 'admin' && (
-              <button
-                onClick={() => navigate('/manager/settings')}
-                className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
-              >
-                <Settings size={16} /> Cài đặt
-              </button>
+              <>
+                <button
+                  onClick={() => navigate('/manager/settings')}
+                  className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
+                >
+                  <Settings size={16} /> Cài đặt
+                </button>
+                <button
+                  onClick={() => navigate('/manager/audit-logs')}
+                  className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
+                >
+                  <ShieldAlert size={16} /> Nhật ký
+                </button>
+              </>
             )}
           </div>
 

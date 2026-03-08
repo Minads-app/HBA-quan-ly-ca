@@ -6,6 +6,7 @@ import UserManagement from './pages/UserManagement';
 import StaffRegistration from './pages/StaffRegistration';
 import StaffDashboard from './pages/StaffDashboard';
 import Settings from './pages/Settings';
+import AuditLogs from './pages/AuditLogs';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }: { children: JSX.Element, allowedRoles?: string[] }) => {
@@ -72,6 +73,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['manager', 'admin']}>
             <StaffDashboard />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/manager/audit-logs" 
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AuditLogs />
           </ProtectedRoute>
         } 
       />

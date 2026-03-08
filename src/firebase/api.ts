@@ -1,5 +1,6 @@
 import { db, auth } from './config';
 import { doc, runTransaction, getDoc } from 'firebase/firestore';
+import { logAction } from '../services/auditLog';
 
 // Lấy maxSlot từ settings (cache gần nhất hoặc default)
 const getMaxSlots = async () => {
@@ -190,6 +191,8 @@ export const assignShiftApi = async (weekId: string, shiftId: string, role: stri
       transaction.update(shiftRef, { staff: newStaff });
     });
 
+    logAction('OTHER', `Phân công nhân viên ${targetUserName} vào ca ${shiftId} (${role})`, user.uid, user.email || 'Manager', shiftId);
+
     return { success: true };
   } catch (error: any) {
     console.error("Assign Error:", error);
@@ -231,6 +234,9 @@ export const removeStaffFromShiftApi = async (weekId: string, shiftId: string, r
         transaction.update(shiftRef, { staff: { ...data.staff, [roleKey]: newStaff } });
       }
     });
+
+    logAction('OTHER', `Xóa nhân viên ${targetUserId} khỏi ca ${shiftId} (${role})`, user.uid, user.email || 'Manager', shiftId);
+
     return { success: true };
   } catch (error: any) {
     console.error("Remove Staff Error:", error);
@@ -257,6 +263,9 @@ export const removeBackupFromShiftApi = async (weekId: string, shiftId: string, 
 
       transaction.update(shiftRef, { backups: { ...data.backups, [roleKey]: newBackups } });
     });
+
+    logAction('OTHER', `Xóa dự bị ${targetUserId} khỏi ca ${shiftId} (${role})`, user.uid, user.email || 'Manager', shiftId);
+
     return { success: true };
   } catch (error: any) {
     console.error("Remove Backup Error:", error);
@@ -320,6 +329,8 @@ export const confirmWeekApi = async (weekId: string) => {
          transaction.update(weekRef, { confirmedBy: [...currentConfirmed, user.uid] });
       }
     });
+
+    logAction('CONFIRM_WEEK', `Nhân viên xác nhận lịch tuần: ${weekId}`, user.uid, user.email || 'Nhân viên', weekId);
 
     return { success: true };
   } catch (error: any) {

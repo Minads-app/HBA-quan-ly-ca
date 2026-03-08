@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, ChevronLeft, ChevronRight, Users, PlaySquare, Trash2, Settings, XCircle, Lock, Unlock, CheckCircle, AlertCircle, BarChart3 } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Users, PlaySquare, Trash2, Settings, XCircle, Lock, Unlock, CheckCircle, AlertCircle, BarChart3, ShieldAlert } from 'lucide-react';
 import { collection, doc, onSnapshot, getDocs, query, orderBy, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { generateWeeklySchedule, getStartOfWeek, generateWeekId, deleteWeeklySchedule } from '../services/schedule';
 import { Shift } from '../types';
 import { assignShiftApi, removeStaffFromShiftApi, removeBackupFromShiftApi } from '../firebase/api';
 import { useCompanyInfo } from '../hooks/useCompanyInfo';
+import { logAction } from '../services/auditLog';
 
 interface AppUser {
   id: string;
@@ -147,6 +148,7 @@ export default function ManagerDashboard() {
     setGenerating(true);
     try {
       await generateWeeklySchedule(currentDate);
+      logAction('CREATE_WEEK_SCHEDULE', `Khởi tạo lịch tuần mới: ${weekId}`, profile?.uid || 'system', profile?.fullName || 'Manager', weekId);
       showToast('Đã khởi tạo lịch thành công!');
     } catch (error: any) {
       showToast('Lỗi khởi tạo: ' + error.message, 'error');
@@ -159,6 +161,7 @@ export default function ManagerDashboard() {
     if (!window.confirm(`Bạn có chắc muốn ${isWeekLocked ? 'Mở Khóa' : 'CHỐT'} Lịch Tuần này? Mọi thao tác đổi Ca/Trám Ca/Nhận Lịch sẽ bị Khóa.`)) return;
     try {
       await setDoc(doc(db, 'weekly_schedules', weekId), { isLocked: !isWeekLocked }, { merge: true });
+      logAction('CONFIRM_WEEK', `${!isWeekLocked ? 'Khóa/Chốt' : 'Mở khóa'} lịch tuần: ${weekId}`, profile?.uid || 'system', profile?.fullName || 'Manager', weekId);
       showToast(`Đã ${isWeekLocked ? 'Mở khóa' : 'Chốt'} lịch tuần này thành công!`);
     } catch (error: any) {
       showToast("Lỗi thao tác chốt lịch: " + error.message, 'error');
@@ -170,6 +173,7 @@ export default function ManagerDashboard() {
     setGenerating(true);
     try {
       await deleteWeeklySchedule(weekId);
+      logAction('OTHER', `Xóa toàn bộ lịch tuần: ${weekId}`, profile?.uid || 'system', profile?.fullName || 'Manager', weekId);
       showToast('Đã xóa lịch tuần thành công!');
     } catch (error: any) {
       showToast('Lỗi khi xóa: ' + error.message, 'error');
@@ -367,12 +371,20 @@ export default function ManagerDashboard() {
               <Users size={16}/> Nhân sự
             </button>
             {profile?.role === 'admin' && (
-              <button 
-                onClick={() => navigate('/manager/settings')}
-                className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
-              >
-                <Settings size={16}/> Cài đặt
-              </button>
+              <>
+                <button 
+                  onClick={() => navigate('/manager/settings')}
+                  className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
+                >
+                  <Settings size={16}/> Cài đặt
+                </button>
+                <button 
+                  onClick={() => navigate('/manager/audit-logs')}
+                  className="px-3 md:px-4 py-2 text-sm font-medium rounded-md text-white/80 hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2 shrink-0"
+                >
+                  <ShieldAlert size={16}/> Nhật ký
+                </button>
+              </>
             )}
           </div>
 
@@ -568,19 +580,16 @@ export default function ManagerDashboard() {
                     return (
                       <td key={day.dayName} className={`p-3 border-r border-gray-200 align-top ${day.isToday ? 'bg-blue-50/30' : ''}`}>
                         <div className="flex flex-col gap-2 h-full">
-                          {(() => {
-                            const posConfig = scheduleRules?.positionsConfig || {
-                              manager: { name: "Quản lý" },
-                              cashier: { name: "Thu ngân" },
-                              ticket_checker: { name: "Soát vé" }
-                            };
-                            return Object.entries(posConfig).map(([posId, config]) => (
-                              <div key={posId}>
-                                <div className="text-[10px] uppercase text-gray-400 font-semibold mb-0.5 mt-2 first:mt-0">{(config as any).name}</div>
+                          {scheduleRules && Object.entries(scheduleRules.positionsConfig || {})
+                              .sort((a,b) => ((a[1] as any).order || 0) - ((b[1] as any).order || 0))
+                              .map(([posId, posInfo]: [string, any]) => (
+                              <div key={posId} className="flex border-t border-gray-100/50 pt-2 first:border-t-0 first:pt-0">
+                                <div className="w-20 text-[11px] font-semibold text-gray-500 pt-1 pr-2 uppercase truncate" title={posInfo.name}>{posInfo.name}</div>
+                                <div className="flex-1">
                                 {renderStaffCell(shift.staff?.[posId] || [], shift.backups?.[posId] || [], shift.id, posId, shift.shiftName, day.dateStr, scheduleRules?.staffSlots?.[posId] || 1)}
+                                </div>
                               </div>
-                            ));
-                          })()}
+                            ))}
                         </div>
                       </td>
                     );
