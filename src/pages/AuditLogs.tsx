@@ -32,7 +32,7 @@ export default function AuditLogs() {
         fetchedLogs.push({ id: doc.id, ...doc.data() });
       });
       setLogs(fetchedLogs);
-      
+
       const lastVisible = snapshot.docs[snapshot.docs.length - 1];
       setLastDoc(lastVisible);
       setHasMore(snapshot.docs.length === PAGE_SIZE);
@@ -59,7 +59,7 @@ export default function AuditLogs() {
       snapshot.forEach((doc) => {
         newLogs.push({ id: doc.id, ...doc.data() });
       });
-      
+
       setLogs(prev => [...prev, ...newLogs]);
       setLastDoc(snapshot.docs[snapshot.docs.length - 1]);
       setHasMore(snapshot.docs.length === PAGE_SIZE);
@@ -84,9 +84,9 @@ export default function AuditLogs() {
   const formatTime = (ts: Timestamp) => {
     if (!ts) return '';
     const d = ts.toDate();
-    return d.toLocaleString('vi-VN', { 
-       hour: '2-digit', minute: '2-digit', second: '2-digit',
-       day: '2-digit', month: '2-digit', year: 'numeric'
+    return d.toLocaleString('vi-VN', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      day: '2-digit', month: '2-digit', year: 'numeric'
     });
   };
 
@@ -107,11 +107,11 @@ export default function AuditLogs() {
           <div className="flex items-center justify-between h-14 sm:h-16">
             <div className="flex items-center gap-3">
               <button onClick={() => window.history.back()} className="text-white hover:bg-white/10 p-2 rounded-full transition-colors flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7" /><path d="M19 12H5" /></svg>
               </button>
               <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">HBA Quận 3</h1>
             </div>
-            
+
             <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto custom-scrollbar no-scrollbar scroll-smooth snap-x">
               <span className="text-white/80 font-medium text-sm">Trang Quản Trị</span>
             </div>
@@ -170,7 +170,7 @@ export default function AuditLogs() {
                       <td className="px-4 lg:px-6 py-4 align-top">
                         <div className="text-sm text-gray-700 whitespace-pre-wrap">{log.description}</div>
                         {log.targetId && (
-                           <div className="text-[11px] text-gray-400 mt-1 uppercase">Target: {log.targetId}</div>
+                          <div className="text-[11px] text-gray-400 mt-1 uppercase">Target: {log.targetId}</div>
                         )}
                       </td>
                     </tr>
@@ -179,16 +179,16 @@ export default function AuditLogs() {
               </tbody>
             </table>
           </div>
-          
+
           {hasMore && (
-             <div className="p-4 bg-gray-50 border-t border-gray-100 text-center">
-               <button 
-                  onClick={loadMore}
-                  className="px-6 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors shadow-sm"
-               >
-                 Tải thêm
-               </button>
-             </div>
+            <div className="p-4 bg-gray-50 border-t border-gray-100 text-center">
+              <button
+                onClick={loadMore}
+                className="px-6 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors shadow-sm"
+              >
+                Tải thêm
+              </button>
+            </div>
           )}
         </div>
       </div>

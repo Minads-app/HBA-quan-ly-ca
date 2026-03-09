@@ -246,7 +246,11 @@ export default function ManagerDashboard() {
               setSelectedShiftForAssign({ shiftId, role, shiftName, date });
               setIsAssignModalOpen(true);
             }}
-            className="w-full bg-white border border-dashed border-gray-300 text-gray-400 hover:text-blue-500 hover:border-blue-400 hover:bg-blue-50 px-2 py-1 rounded text-xs flex items-center justify-center transition-colors mt-1"
+            className={`w-full px-2 py-1 rounded text-xs flex items-center justify-center transition-all mt-1 ${
+              members.length === 0 
+                ? 'bg-orange-100 text-black border border-orange-200 hover:bg-orange-200 shadow-sm' 
+                : 'bg-white border border-dashed border-gray-300 text-gray-400 hover:text-blue-500 hover:border-blue-400 hover:bg-blue-50'
+            }`}
           >
             + Bổ sung
           </button>
