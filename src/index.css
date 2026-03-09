@@ -10,3 +10,79 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   @apply bg-gray-50 text-gray-900;
 }
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 5mm;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
+
+  th, td {
+    border: 1px solid black !important;
+    color: black !important;
+    background: white !important;
+    padding: 4px !important;
+  }
+
+  header, footer, .shrink-0, button, .z-40.shadow-sm, .sticky {
+    position: static !important;
+    display: none !important;
+  }
+
+  /* Hiển thị lại bảng và tiêu đề cột trong lúc in */
+  .overflow-auto {
+    overflow: visible !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+  }
+
+  /* Ép bảng hiển thị đầy đủ */
+  .bg-white.rounded-xl {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Ẩn các nút Bổ sung khi in */
+  button, .bg-orange-100 {
+    display: none !important;
+  }
+
+  /* Hiển thị text thay vì màu sắc trong các ô Nghỉ/Chưa tạo */
+  .bg-gray-100\/50, .bg-yellow-50\/50, .bg-blue-50\/20 {
+    background: white !important;
+  }
+  
+  .transform.-rotate-45 {
+    display: none !important;
+  }
+}

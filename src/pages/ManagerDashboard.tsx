@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, ChevronLeft, ChevronRight, Users, PlaySquare, Trash2, Settings, XCircle, Lock, Unlock, CheckCircle, AlertCircle, BarChart3, ShieldAlert } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Users, PlaySquare, Trash2, Settings, XCircle, Lock, Unlock, CheckCircle, AlertCircle, BarChart3, ShieldAlert, FileDown, Printer } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { collection, doc, onSnapshot, getDocs, query, orderBy, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { generateWeeklySchedule, getStartOfWeek, generateWeekId, deleteWeeklySchedule } from '../services/schedule';
@@ -188,6 +189,56 @@ export default function ManagerDashboard() {
     setCurrentDate(d);
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleExportExcel = () => {
+    const dayNames = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
+    const dbDaysMap: Record<string, string> = {
+      'Thứ Hai': 'Thứ 2', 'Thứ Ba': 'Thứ 3', 'Thứ Tư': 'Thứ 4',
+      'Thứ Năm': 'Thứ 5', 'Thứ Sáu': 'Thứ 6', 'Thứ Bảy': 'Thứ 7', 'Chủ Nhật': 'Thứ 8'
+    };
+
+    const headers = ['Ca', 'Vị trí', ...dayNames];
+    const data: any[][] = [headers];
+
+    shiftTypes.forEach(shiftName => {
+      const positions = scheduleRules?.positionsConfig 
+        ? Object.entries(scheduleRules.positionsConfig).sort((a: any, b: any) => (a[1].order || 0) - (b[1].order || 0))
+        : [];
+
+      positions.forEach(([posId, posInfo]: [string, any]) => {
+        const row = [shiftName, posInfo.name];
+        
+        dayNames.forEach(dayName => {
+          const searchDay = dbDaysMap[dayName];
+          const shift = shifts.find(s => (s.date === searchDay || s.date === dayName || s.date === 'CN') && s.shiftName === shiftName);
+          
+          if (shift && shift.staff && shift.staff[posId]) {
+            const names = shift.staff[posId].map((m: any) => m.name).join(', ');
+            row.push(names);
+          } else {
+            row.push('');
+          }
+        });
+        data.push(row);
+      });
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Lich_Lam_Viec");
+
+    // Tự động điều chỉnh độ rộng cột
+    const wscols = headers.map(() => ({ wch: 15 }));
+    wscols[0] = { wch: 10 }; // Ca
+    wscols[1] = { wch: 15 }; // Vị trí
+    worksheet['!cols'] = wscols;
+
+    XLSX.writeFile(workbook, `Lich_Lam_Viec_${weekId}.xlsx`);
+  };
+
   // Render danh sách nhân viên trong 1 ô (mảng)
   const renderStaffCell = (staffList: any[], backupsList: any[], shiftId: string, role: string, shiftName: string, date: string, maxSlot: number) => {
     const members = staffList || [];
@@ -342,7 +393,7 @@ export default function ManagerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-gradient-to-r from-blue-800 to-blue-600 shadow-lg relative z-20 shrink-0">
+      <header className="bg-gradient-to-r from-blue-800 to-blue-600 shadow-lg relative z-20 shrink-0 no-print">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center gap-3 md:gap-4 lg:justify-between">
           <div className="flex items-center gap-3 min-w-[200px] flex-1 lg:flex-none">
             {companyInfo.logoBase64 ? (
@@ -436,11 +487,33 @@ export default function ManagerDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Action Buttons for Export/Print */}
+        <div className="bg-white/5 border-t border-white/10 px-4 py-2 flex justify-end gap-2 no-print">
+          <button 
+            onClick={handleExportExcel}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded shadow-sm transition-colors"
+          >
+            <FileDown size={14} /> Xuất Excel
+          </button>
+          <button 
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold rounded shadow-sm transition-colors"
+          >
+            <Printer size={14} /> In Lịch (A4)
+          </button>
+        </div>
       </header>
+      
+      {/* Tiêu đề bảng chỉ hiện khi in */}
+      <div className="hidden print:block text-center py-4">
+        <h2 className="text-2xl font-bold">BẢNG LỊCH LÀM VIỆC - {formatWeekLabel(weekId)}</h2>
+        <p className="text-sm">Đơn vị: {companyInfo.companyName}</p>
+      </div>
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 w-full flex flex-col">
         {/* Filter Day Mobile */}
-        <div className="md:hidden flex mb-4 items-center bg-white border border-gray-200 rounded-lg px-2 shadow-sm text-sm w-full">
+        <div className="md:hidden flex mb-4 items-center bg-white border border-gray-200 rounded-lg px-2 shadow-sm text-sm w-full no-print">
           <span className="text-gray-500 font-medium pl-2 pr-1 py-3">Hiển thị:</span>
           <select 
             value={selectedFilterDay}
@@ -674,7 +747,7 @@ export default function ManagerDashboard() {
       )}
 
       {/* Footer bản quyền */}
-      <footer className="bg-gradient-to-r from-blue-900 to-blue-800 py-2 text-center shrink-0">
+      <footer className="bg-gradient-to-r from-blue-900 to-blue-800 py-2 text-center shrink-0 no-print">
         <p className="text-[11px] text-white/50">© {new Date().getFullYear()} <span className="font-semibold text-white/70">MinAds Soft</span></p>
       </footer>
     </div>
