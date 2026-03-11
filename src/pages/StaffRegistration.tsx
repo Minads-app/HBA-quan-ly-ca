@@ -19,6 +19,7 @@ export default function StaffRegistration() {
   const navigate = useNavigate();
   
   const [scheduleData, setScheduleData] = useState<DailySchedule[]>([]);
+  const [fullScheduleData, setFullScheduleData] = useState<DailySchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [isWeekLocked, setIsWeekLocked] = useState(false);
   const [hasConfirmedWeek, setHasConfirmedWeek] = useState(false);
@@ -143,6 +144,7 @@ export default function StaffRegistration() {
       
       const filteredData = processedData.filter(day => day.date === 'Unknown' || day.date >= todayStr);
 
+      setFullScheduleData(processedData);
       setScheduleData(filteredData);
       
       // Auto expand first day if not set
@@ -233,7 +235,7 @@ export default function StaffRegistration() {
   // Count how many shifts current user registered this week
   const countMyShifts = () => {
     let count = 0;
-    scheduleData.forEach(day => {
+    fullScheduleData.forEach(day => {
       day.shifts?.forEach(shift => {
         const staffArr: any[] = (shift.staff as any)?.[userRole] || [];
         if (staffArr.some((s: any) => s.userId === profile?.uid)) {
@@ -263,7 +265,7 @@ export default function StaffRegistration() {
   // Gom danh sách các Ca đã đăng ký của User này trên TẤT CẢ VỊ TRÍ (bao gồm cả Dự bị, Chờ Xác nhận)
   const getMyRegisteredShifts = () => {
     const myShifts: {dayName: string; shiftName: string; timeRange: string; roleName: string; myStatus: 'confirmed' | 'pending' | 'backup'}[] = [];
-    scheduleData.forEach(day => {
+    fullScheduleData.forEach(day => {
       day.shifts?.forEach(shift => {
         const staffObj = shift.staff || {};
         const backupObj = shift.backups || {};
