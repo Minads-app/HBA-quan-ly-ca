@@ -179,7 +179,7 @@ export default function StaffRegistration() {
 
   const changeWeek = (direction: number) => {
     const newOffset = weekOffset + direction;
-    if (newOffset < 1) return; // Mặc định không cho về tuần này/tuần trước
+    if (newOffset < 0) return; // Cho phép về Tuần này (0), không cho về Tuần trước (-1)
     setWeekOffset(newOffset);
   };
 
@@ -414,13 +414,13 @@ export default function StaffRegistration() {
       <header className="bg-blue-600 text-white shadow-md z-50 shrink-0">
         <div className="px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <button onClick={() => changeWeek(-1)} disabled={weekOffset <= 1} className="p-1 hover:bg-blue-700 disabled:opacity-50 rounded-full transition-colors">
+            <button onClick={() => changeWeek(-1)} disabled={weekOffset <= 0} className="p-1 hover:bg-blue-700 disabled:opacity-50 rounded-full transition-colors">
               <ChevronLeft className="w-6 h-6" />
             </button>
             <div className="flex flex-col items-center justify-center min-w-[100px]">
               <h1 className="text-lg font-bold">Lịch {formatWeekLabel(weekId)}</h1>
               <span className="text-[10px] text-blue-200">
-                {weekOffset === 1 ? '(Tuần Sau)' : `(Tới +${weekOffset} tuần)`}
+                {weekOffset === 0 ? '(Tuần Này)' : weekOffset === 1 ? '(Tuần Sau)' : `(Tới +${weekOffset} tuần)`}
               </span>
             </div>
             <button onClick={() => changeWeek(1)} className="p-1 hover:bg-blue-700 rounded-full transition-colors">
